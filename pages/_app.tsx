@@ -47,7 +47,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
         {/* Essential META Tags */}
 
-        <meta property="og:title" content="Artist Portfolio" />
+        <meta property="og:title" content="Test" />
         <meta
           property="og:description"
           content="A awesome artist portfolio website."
