@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TZ Artist Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles to match the original TSX components */
+        html, body {
+            font-family: 'Inter', sans-serif;
+            background-color: #dbd5c9 !important; /* Force the background color */
+            color: #333333;
+            margin: 0;
+            padding: 0;
+        }
+        .font-extralight { font-weight: 200; }
+        .font-light { font-weight: 300; }
+        .nav-link {
+            font-weight: 300;
+            color: #4a5568;
+            transition: color 0.3s;
+        }
+        .nav-link:hover {
+            color: #000;
+        }
+        .gallery-item {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .gallery-item:hover {
+            transform: scale(1.02);
+        }
+        .gallery-item img {
+            filter: brightness(0.9);
+            transition: filter 0.2s;
+            width: 100%;
+            height: 350px; /* Fixed height for consistent sizing */
+            object-fit: cover; /* Ensures images cover the container while maintaining aspect ratio */
+        }
+        .gallery-item:hover img {
+            filter: brightness(1.1);
+        }
+        .gallery-item-container {
+            background-color: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            height: 350px; /* Fixed container height */
+        }
+        .form-input {
+            background-color: transparent;
+            border: 1px solid black;
+            padding: 0.5rem;
+            font-weight: 300;
+            color: white;
+        }
+        .form-input:focus {
+            outline: none;
+        }
+        .form-input::placeholder {
+            color: #d1d5db;
+        }
+        .form-label {
+            font-weight: 300;
+        }
+        /* Layout grid similar to Next.js Layout component */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        .col-span-10 {
+            grid-column: span 10 / span 10;
+        }
+        .col-start-2 {
+            grid-column-start: 2;
+        }
+        .col-end-12 {
+            grid-column-end: 12;
+        }
+        /* Modal overlay for gallery */
+        .gallery-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(219, 213, 201, 0.95); /* Updated to match background */
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .gallery-modal.active {
+            display: flex;
+        }
+        .gallery-modal-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            max-width: 80vw;
+            max-height: 90vh;
+            position: relative; /* Keep for the close button */
+        }
+        .gallery-modal img {
+            max-height: 70vh; /* Control max image height */
+            width: auto;
+            object-fit: contain;
+            margin-bottom: 1rem; /* Space below image */
+        }
+        .gallery-close {
+            position: absolute;
+            top: -15px; /* Position it cleanly above the content */
+            right: 0px;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #333;
+            cursor: pointer;
+            z-index: 1010;
+        }
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 1005;
+        }
+        .gallery-prev {
+            left: 10px; /* Position inside the viewport */
+        }
+
+        .gallery-next {
+            right: 10px; /* Position inside the viewport */
+        }
+
+        .gallery-info {
+            /* REMOVE absolute positioning */
+            text-align: center;
+            color: #333;
+        }
+
+        /* --- Animation Keyframes --- */
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* --- Animation Utility Classes --- */
+        .animate-slide-in-left {
+            animation: slideInLeft 1s ease-out forwards;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 1.5s ease-out forwards;
+        }
+
+        /* --- Gallery Animation Keyframes & Classes --- */
+        @keyframes galleryFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes gallerySlideOut {
+            to { opacity: 0; transform: translateX(-15px); }
+        }
+
+        @keyframes gallerySlideIn {
+            from { opacity: 0; transform: translateX(15px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .gallery-content-entering {
+            animation: galleryFadeIn 0.4s ease-out forwards;
+        }
+
+        .gallery-content-exiting {
+            animation: gallerySlideOut 0.3s ease-in forwards;
+        }
+
+        .gallery-content-reentering {
+            animation: gallerySlideIn 0.3s ease-out forwards;
+        }
+
+        /* Add a transition for the text's opacity */
+        .gallery-info h3, .gallery-info p {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body class="antialiased" style="background-color: #dbd5c9 !important;">
+
+    <!-- Header & Navigation matching Navbar.tsx -->
+    <header class="sticky top-0 z-50" style="background-color: rgba(219, 213, 201, 0.8); backdrop-filter: blur(8px);">
+        <div class="layout-grid">
+            <nav class="py-8 col-span-10 col-start-2 col-end-12 flex flex-row justify-between items-center">
+                <a href="#" class="font-extralight text-2xl text-black cursor-pointer">TZ</a>
+                
+                <!-- Desktop Menu -->
+                <ul class="hidden md:flex flex-row items-center gap-2">
+                    <li class="py-1 px-2 text-sm font-light text-gray-600 hover:text-gray-900">
+                        <a href="#home" class="cursor-pointer">Home</a>
+                    </li>
+                    <li class="py-1 px-2 text-sm font-light text-gray-600 hover:text-gray-900">
+                        <a href="#portfolio" class="cursor-pointer">Portfolio</a>
+                    </li>
+                    <li class="py-1 px-2 text-sm font-light text-gray-600 hover:text-gray-900">
+                        <a href="#contact" class="cursor-pointer">Contact</a>
+                    </li>
+                    <li class="py-1 px-2 text-sm font-extralight">
+                        <a href="https://www.instagram.com/__dongshu__/" target="_blank" rel="noopener noreferrer" class="leading-none">
+                            <svg class="fill-current stroke-current text-gray-600 hover:text-gray-900 w-4 h-4" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <title>Instagram</title>
+                                <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/>
+                            </svg>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="md:hidden text-black focus:outline-none h-8 w-8 z-20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current text-gray-600 hover:text-gray-900 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </nav>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden fixed pt-24 z-10 w-screen h-screen" style="background-color: #dbd5c9;">
+            <ul class="grid grid-rows-6 gap-6 justify-center">
+                <li class="py-1 px-2 text-lg text-center font-extralight text-gray-700 hover:text-gray-900">
+                    <a href="#home" class="cursor-pointer">Home</a>
+                </li>
+                <li class="py-1 px-2 text-lg text-center font-extralight text-gray-700 hover:text-gray-900">
+                    <a href="#portfolio" class="cursor-pointer">Portfolio</a>
+                </li>
+                <li class="py-1 px-2 text-lg text-center font-extralight text-gray-700 hover:text-gray-900">
+                    <a href="#contact" class="cursor-pointer">Contact</a>
+                </li>
+                <li class="grid place-items-center py-1 px-2 text-base font-extralight text-gray-700 hover:text-gray-900">
+                    <a href="https://www.instagram.com" target="_blank">
+                        <svg class="fill-current stroke-current text-gray-600 hover:text-gray-900 w-5 h-5" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <title>Instagram</title>
+                            <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/>
+                            </svg>
+                        </a>
+                    </li>
+            </ul>
+        </div>
+    </header>
+
+    <div class="layout-grid">
+        <!-- Hero Section matching Hero.tsx -->
+        <section id="home" class="py-8 col-span-10 col-start-2 col-end-12 grid grid-cols-1 sm:grid-cols-2 overflow-hidden">
+            <div class="flex flex-col justify-evenly order-2 md:order-1">
+                <h1 class="text-5xl md:text-7xl md:w-min my-4 md:m-0 font-light leading-snug text-black animate-slide-in-left">
+                    Meet TZ
+                </h1>
+                <h2 class="font-extralight text-2xl my-4 md:m-0 text-gray-700 animate-slide-in-left" style="animation-delay: 200ms;">
+                    Modern/Contemporary Artist
+                </h2>
+            </div>
+            <div class="relative grid place-items-center order-1 md:order-2">
+                <img id="hero-image" src="public/images/self_potrait.jpg" alt="Picture of artist" class="max-w-full h-auto animate-fade-in">
+            </div>
+        </section>
+
+        <!-- Portfolio Section matching Showcase.tsx -->
+        <section id="portfolio" class="py-8 col-span-10 col-start-2 col-end-12">
+            <div class="flex flex-row items-center my-4">
+                <span class="w-full h-0.5 bg-gray-400 mr-4"></span>
+                <h1 class="text-4xl font-light text-gray-700">Showcase</h1>
+                <span class="w-full h-0.5 bg-gray-400 ml-4"></span>
+            </div>
+            <main class="py-8 gap-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full sm:w-11/12 lg:w-10/12 mx-auto">
+                <!-- Images will be dynamically added here by script -->
+            </main>
+        </section>
+        
+        <!-- Contact Section matching Contact.tsx -->
+        <section id="contact" class="py-8 col-span-10 col-start-2 col-end-12 py-16" style="background-color: #5b748a;">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center px-6">
+                <div class="text-center text-black">
+                    <h2 class="text-4xl font-light mb-4">Contact</h2>
+                    <h3 class="text-lg font-extralight">l74747350@gmail.com</h3>
+                </div>
+                <form action="https://formsubmit.co/l74747350@gmail.com" method="POST" class="space-y-6">
+                    <input type="hidden" name="_subject" value="Contact from Website">
+                    <input type="hidden" name="_captcha" value="false">
+                    <div>
+                        <label for="name" class="block text-sm form-label text-black">Name*</label>
+                        <input type="text" name="name" id="name" class="mt-1 block w-full form-input" required>
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm form-label text-black">E-Mail*</label>
+                        <input type="email" name="email" id="email" class="mt-1 block w-full form-input" required>
+                    </div>
+                    <div>
+                        <label for="message" class="block text-sm form-label text-black">Message*</label>
+                        <textarea name="message" id="message" rows="4" class="mt-1 block w-full form-input resize-none" required></textarea>
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full max-w-xs mx-auto block bg-gray-600 text-gray-100 py-2 px-4 border border-gray-500 hover:bg-gray-800 transition-all duration-300">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer matching Footer.tsx -->
+    <footer class="border-t border-gray-200 py-6">
+        <div class="container mx-auto px-6 text-center text-gray-500">
+            <p class="text-sm">&copy; 2025 TZ. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Gallery Modal -->
+    <div id="gallery-modal" class="gallery-modal">
+        <button class="gallery-nav gallery-prev" onclick="previousImage()">&#8249;</button>
+        <div class="gallery-modal-content">
+            <button class="gallery-close" onclick="closeGallery()">&times;</button>
+            
+            <div class="gallery-info">
+                <h3 id="gallery-label" class="font-light text-lg mb-2"></h3>
+            </div>
+            
+            <img id="gallery-image" src="" alt="">
+            
+            <div class="gallery-info">
+                <p id="gallery-description" class="font-light text-sm mt-2"></p>
+            </div>
+        </div>
+        <button class="gallery-nav gallery-next" onclick="nextImage()">&#8250;</button>
+    </div>
+
+    <script>
+        // --- Image Data with Labels and Descriptions ---
+        const portfolioData = [
+            { url: "/images/永恒的瞬间.jpg", label: "Eternal Moments", description: "12'' x 16'' acrylic" },
+            { url: "/images/屁股.jpg", label: "Butt", description: "12'' x 16'' acrylic" },
+            { url: "/images/abstract.jpg", label: "Abstract", description: "12'' x 16'' acrylic" },
+            { url: "/images/tina.jpg", label: "Tina", description: "12'' x 16'' acrylic" },
+            { url: "/images/坟墓.jpg", label: "Tomb", description: "12'' x 16'' acrylic" },
+            { url: "/images/亲密爱人.jpg", label: "Lovers", description: "16'' x 20'' acrylic" },
+            { url: "/images/猫猫主义.jpg", label: "Catism", description: "16'' x 20'' acrylic" },
+            { url: "/images/泳池尿尿.jpg", label: "Pee in the Pool", description: "16'' x 20'' acrylic" },
+            { url: "/images/villanelle.jpg", label: "Villanelle", description: "16'' x 20'' acrylic" },
+            { url: "/images/way_of_water.jpg", label: "Way of Water", description: "40'' x 40'' acrylic" },
+            { url: "/images/moon.jpg", label: "Moon", description: "40'' x 40'' acrylic" },
+            { url: "/images/tree.jpg", label: "Tree", description: "16'' x 20'' acrylic" },
+            { url: "/images/three_color.jpg", label: "Abstract", description: "16'' x 20'' acrylic" },
+        ];
+
+        let currentImageIndex = 0;
+        let isAnimating = false; // Flag to prevent animation spam
+
+        // --- Populate Gallery ---
+        const galleryContainer = document.querySelector('#portfolio main');
+        if (galleryContainer) {
+            portfolioData.forEach((item, index) => {
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'gallery-item';
+                galleryItem.onclick = () => openGallery(index);
+                
+                galleryItem.innerHTML = `
+                    <div class="gallery-item-container">
+                        <img src="public${item.url}" alt="Artwork: ${item.label}" loading="lazy">
+                    </div>
+                `;
+                
+                galleryContainer.appendChild(galleryItem);
+            });
+        }
+
+        // --- Gallery Functions ---
+        function openGallery(index) {
+            currentImageIndex = index;
+            updateGalleryContent();
+            document.getElementById('gallery-modal').classList.add('active');
+            
+            // Add initial fade-in animation
+            const modalContent = document.querySelector('.gallery-modal-content');
+            modalContent.classList.add('gallery-content-entering');
+            modalContent.addEventListener('animationend', () => {
+                modalContent.classList.remove('gallery-content-entering');
+            }, { once: true });
+        }
+
+        function closeGallery() {
+            document.getElementById('gallery-modal').classList.remove('active');
+        }
+
+        function navigateGallery(direction) {
+            if (isAnimating) return; // Exit if an animation is already running
+            isAnimating = true;
+
+            const modalContent = document.querySelector('.gallery-modal-content');
+            modalContent.classList.add('gallery-content-exiting');
+
+            modalContent.addEventListener('animationend', () => {
+                modalContent.classList.remove('gallery-content-exiting');
+
+                if (direction === 'next') {
+                    currentImageIndex = (currentImageIndex + 1) % portfolioData.length;
+                } else {
+                    currentImageIndex = (currentImageIndex - 1 + portfolioData.length) % portfolioData.length;
+                }
+                updateGalleryContent();
+                
+                modalContent.classList.add('gallery-content-reentering');
+                isAnimating = false; // Allow next click
+
+                modalContent.addEventListener('animationend', () => {
+                    modalContent.classList.remove('gallery-content-reentering');
+                }, { once: true });
+
+            }, { once: true });
+        }
+
+        function updateGalleryContent() {
+            const currentItem = portfolioData[currentImageIndex];
+            document.getElementById('gallery-image').src = `public${currentItem.url}`;
+            document.getElementById('gallery-image').alt = `Artwork: ${currentItem.label}`;
+            document.getElementById('gallery-label').textContent = currentItem.label;
+            document.getElementById('gallery-description').textContent = currentItem.description;
+        }
+
+        // --- Mobile Menu Toggle ---
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            const mobileLinks = document.querySelectorAll('#mobile-menu a');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+        }
+
+        // --- Hero Image Dynamic Sizing ---
+        function setHeroImageSize() {
+            const heroImage = document.getElementById('hero-image');
+            if (heroImage && typeof window !== 'undefined') {
+                const dynamicHeight = window.innerHeight - 160;
+                heroImage.style.height = `${dynamicHeight}px`;
+                heroImage.style.maxHeight = '70vh';
+                heroImage.style.objectFit = 'contain';
+            }
+        }
+        window.addEventListener('load', setHeroImageSize);
+        window.addEventListener('resize', setHeroImageSize);
+
+        // --- Event Listeners for Gallery Navigation ---
+        document.querySelector('.gallery-prev').addEventListener('click', () => navigateGallery('prev'));
+        document.querySelector('.gallery-next').addEventListener('click', () => navigateGallery('next'));
+        
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('gallery-modal');
+            if (modal.classList.contains('active')) {
+                if (e.key === 'ArrowLeft') navigateGallery('prev');
+                else if (e.key === 'ArrowRight') navigateGallery('next');
+                else if (e.key === 'Escape') closeGallery();
+            }
+        });
+
+        document.getElementById('gallery-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'gallery-modal') {
+                closeGallery();
+            }
+        });
+    </script>
+
+</body>
+</html>
